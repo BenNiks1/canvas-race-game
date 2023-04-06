@@ -131,35 +131,34 @@ class Obstacle {
 
   }
 
-  update() {
-    this.y += this.speed;
+    update() {
+      // движение
+      this.y += this.speed;
 
-    if (this.y > canvas.height) {
-      let newX, colliding;
-
-      do {
-        newX = Math.random() * (canvas.width - this.width);
-        colliding = obstacles.some((obst) => isColliding(this, obst, newX, this.y - canvas.height));
-      } while (colliding);
-
-      this.x = newX;
-      this.y = -200;
-    }
-
-    if (player.carIntersect(this)) {
-      gameOver = true;
-    }
-
-    for (let obstacle of obstacles) {
-      if (obstacle !== this && this.carIntersect(obstacle)) {
-        if (this.speed > obstacle.speed) {
-          obstacle.y = this.y - this.height - 10;
-        } else {
-          this.y = obstacle.y - this.height - 10;
+      // Проверка на коллизии с другими машинами-препятствиями и изменение скорости
+      for (let obstacle of obstacles) {
+        if (obstacle !== this && this.carIntersect(obstacle)) {
+          const distance = Math.abs(this.y - obstacle.y);
+          if (this.speed > obstacle.speed) {
+            this.speed -= 0.2 * (1 - distance / this.height);
+          } else {
+            this.speed += 0.2 * (1 - distance / this.height);
+          }
         }
       }
+
+      // если препятствие выходит за пределы холста, создаем новое
+      if (this.y > canvas.height) {
+        this.y = -200; // отображение за верхней границей
+        this.x = Math.random() * (canvas.width - this.width); // случайная позиция по горизонтали
+        this.speed = speed / (Math.random() * 3 + 1); // случайная скорость
+      }
+
+      // коллизия с игроком
+      if (player.carIntersect(this)) {
+        gameOver = true;
+      }
     }
-  }
 
   carIntersect(otherCar) {
     return (
@@ -187,8 +186,6 @@ class Coin {
 
     ctx.drawImage(image, this.x, this.y, this.width, this.height);
 
-    // ctx.fillStyle = this.color;
-    // ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 
   update() {
